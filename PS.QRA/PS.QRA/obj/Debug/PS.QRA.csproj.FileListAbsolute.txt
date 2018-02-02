@@ -1,0 +1,16 @@
+C:\Projetos\PS.QRA\PS.QRA\PS.QRA\bin\Debug\PS.QRA.dll
+C:\Projetos\PS.QRA\PS.QRA\PS.QRA\bin\Debug\PS.QRA.pdb
+C:\Projetos\PS.QRA\PS.QRA\PS.QRA\bin\Debug\Xamarin.Forms.Core.dll
+C:\Projetos\PS.QRA\PS.QRA\PS.QRA\bin\Debug\Xamarin.Forms.Platform.dll
+C:\Projetos\PS.QRA\PS.QRA\PS.QRA\bin\Debug\Xamarin.Forms.Xaml.dll
+C:\Projetos\PS.QRA\PS.QRA\PS.QRA\bin\Debug\Xamarin.Forms.Core.pdb
+C:\Projetos\PS.QRA\PS.QRA\PS.QRA\bin\Debug\Xamarin.Forms.Core.xml
+C:\Projetos\PS.QRA\PS.QRA\PS.QRA\bin\Debug\Xamarin.Forms.Platform.pdb
+C:\Projetos\PS.QRA\PS.QRA\PS.QRA\bin\Debug\Xamarin.Forms.Xaml.pdb
+C:\Projetos\PS.QRA\PS.QRA\PS.QRA\bin\Debug\Xamarin.Forms.Xaml.xml
+C:\Projetos\PS.QRA\PS.QRA\PS.QRA\obj\Debug\PS.QRA.csprojResolveAssemblyReference.cache
+C:\Projetos\PS.QRA\PS.QRA\PS.QRA\obj\Debug\PS.QRA.csproj.CoreCompileInputs.cache
+C:\Projetos\PS.QRA\PS.QRA\PS.QRA\obj\Debug\PS.QRA.MainPage.xaml.g.cs
+C:\Projetos\PS.QRA\PS.QRA\PS.QRA\obj\Debug\PS.QRA.App.xaml.g.cs
+C:\Projetos\PS.QRA\PS.QRA\PS.QRA\obj\Debug\PS.QRA.dll
+C:\Projetos\PS.QRA\PS.QRA\PS.QRA\obj\Debug\PS.QRA.pdb
