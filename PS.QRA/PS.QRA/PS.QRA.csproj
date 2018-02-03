@@ -41,11 +41,14 @@
     <Compile Include="ComplexNumber.cs" />
     <Compile Include="FftAlgorithm.cs" />
     <Compile Include="FrequencyUtils.cs" />
+    <Compile Include="IAudioMediaUtil.cs" />
     <Compile Include="IAudioReader.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SegundaImplementacaoFourier\Complex.cs" />
+    <Compile Include="SegundaImplementacaoFourier\FourierStatic.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="MainPage.xaml">
