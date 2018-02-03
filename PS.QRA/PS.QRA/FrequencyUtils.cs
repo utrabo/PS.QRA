@@ -11,23 +11,6 @@ namespace PS.QRA
     /// </summary> 
     static class FrequencyUtils
     {
-        internal static int[] PerformFFTAndReturnPeaks(double[] x, int sampleRate, double minFreq, double maxFreq, out double[] peakValues)
-        {
-            double[] spectr = FftAlgorithm.Calculate(x);
-
-            int usefullMinSpectr = Math.Max(0,
-                (int)(minFreq * spectr.Length / sampleRate));
-            int usefullMaxSpectr = Math.Min(spectr.Length,
-                (int)(maxFreq * spectr.Length / sampleRate) + 1);
-
-            // find peaks in the FFT frequency bins 
-            const int PeaksCount = 5;
-            int[] peakIndices;
-            peakIndices = FindPeaks(spectr, usefullMinSpectr, usefullMaxSpectr - usefullMinSpectr, PeaksCount, out peakValues);
-
-            return peakIndices;
-        }
-
         /// <summary>
         /// Finds fundamental frequency: calculates spectrogram, finds peaks, analyzes
         /// and refines frequency by diff sample values.
