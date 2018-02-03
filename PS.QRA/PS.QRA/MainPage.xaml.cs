@@ -27,8 +27,8 @@ namespace PS.QRA
         // Conforme: https://stackoverflow.com/a/6265405
         private readonly double Absolute_Short_MinValue = 32768.0;
 
-        private int MinFrequency = 70;
-        private int MaxFrequency = 1200;
+        private int MinFrequency = 900;
+        private int MaxFrequency = 2000;
 
         public MainPage()
         {
@@ -54,9 +54,18 @@ namespace PS.QRA
                     {
                         x[i] = audioBuffer[i] / Absolute_Short_MinValue;
                     }
+                    StringBuilder builder = new StringBuilder();
+                    double fundFreq = FrequencyUtils.FindFundamentalFrequency(x, SampleRateInHz, MinFrequency, MaxFrequency);
+                    builder.Append(string.Format("##[{0:0.00}]## -> ", fundFreq));
+                    List<double> frequencies = FrequencyUtils.FindFrequencies(x, SampleRateInHz, MinFrequency, MaxFrequency);
+                    frequencies.Sort();
                     
-                    double freq = FrequencyUtils.FindFundamentalFrequency(x, SampleRateInHz, MinFrequency, MaxFrequency);
-                    Debug.WriteLine(freq);
+                    foreach(var freq in frequencies)
+                    {
+                        builder.Append(string.Format("{0:0.00}", freq));
+                        builder.Append(", ");
+                    }
+                    Debug.WriteLine(builder);
 
                 }
                 catch (Exception ex)

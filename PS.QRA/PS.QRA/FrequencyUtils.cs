@@ -24,17 +24,17 @@ namespace PS.QRA
         {
             double[] spectr = FftAlgorithm.Calculate(x);
 
-            int usefullMinSpectr = Math.Max(0,
-                (int)(minFreq * spectr.Length / sampleRate));
-            int usefullMaxSpectr = Math.Min(spectr.Length,
-                (int)(maxFreq * spectr.Length / sampleRate) + 1);
+            int usefullMinSpectr = Math.Max(0, (int)(minFreq * spectr.Length / sampleRate));
+            int usefullMaxSpectr = Math.Min(spectr.Length, (int)(maxFreq * spectr.Length / sampleRate) + 1);
 
             // find peaks in the FFT frequency bins 
             const int PeaksCount = 5;
             int[] peakIndices;
-            double[] peakValues;
-            peakIndices = FindPeaks(spectr, usefullMinSpectr, usefullMaxSpectr - usefullMinSpectr,
-                PeaksCount, out peakValues);
+            peakIndices = FindPeaks(
+                spectr,
+                usefullMinSpectr,
+                usefullMaxSpectr - usefullMinSpectr,
+                PeaksCount);
 
             if (Array.IndexOf(peakIndices, usefullMinSpectr) >= 0)
             {
@@ -58,9 +58,16 @@ namespace PS.QRA
                 int binIntervalStart = spectr.Length / (index + 1), binIntervalEnd = spectr.Length / index;
                 int interval;
                 double peakValue;
+
                 // scan bins frequencies/intervals
-                ScanSignalIntervals(x, verifyFragmentOffset, verifyFragmentLength,
-                    binIntervalStart, binIntervalEnd, out interval, out peakValue);
+                ScanSignalIntervals(
+                    x,
+                    verifyFragmentOffset,
+                    verifyFragmentLength,
+                    binIntervalStart,
+                    binIntervalEnd,
+                    out interval,
+                    out peakValue);
 
                 if (peakValue < minPeakValue)
                 {
@@ -71,6 +78,58 @@ namespace PS.QRA
             }
 
             return (double)sampleRate / minOptimalInterval;
+        }
+
+        internal static List<double> FindFrequencies(double[] x, int sampleRate, double minFreq, double maxFreq)
+        {
+            double[] spectr = FftAlgorithm.Calculate(x);
+
+            int usefullMinSpectr = Math.Max(0, (int)(minFreq * spectr.Length / sampleRate));
+            int usefullMaxSpectr = Math.Min(spectr.Length, (int)(maxFreq * spectr.Length / sampleRate) + 1);
+
+            // find peaks in the FFT frequency bins 
+            const int PeaksCount = 5;
+            int[] peakIndices;
+            peakIndices = FindPeaks(
+                spectr,
+                usefullMinSpectr,
+                usefullMaxSpectr - usefullMinSpectr,
+                PeaksCount);
+
+            if (Array.IndexOf(peakIndices, usefullMinSpectr) >= 0)
+            {
+                // lowest usefull frequency bin shows active
+                // looks like is no detectable sound, return 0
+                return new List<double>();
+            }
+
+            // select fragment to check peak values: data offset
+            const int verifyFragmentOffset = 0;
+            // ... and half length of data
+            int verifyFragmentLength = (int)(sampleRate / minFreq);
+
+            List<double> frequencies = new List<double>();
+            for (int i = 0; i < peakIndices.Length; i++)
+            {
+                int index = peakIndices[i];
+                int binIntervalStart = spectr.Length / (index + 1), binIntervalEnd = spectr.Length / index;
+                int interval;
+                double peakValue;
+
+                // scan bins frequencies/intervals
+                ScanSignalIntervals(
+                    x,
+                    verifyFragmentOffset,
+                    verifyFragmentLength,
+                    binIntervalStart,
+                    binIntervalEnd,
+                    out interval,
+                    out peakValue);
+
+                frequencies.Add((double)sampleRate / interval);
+            }
+
+            return frequencies;
         }
 
         private static void ScanSignalIntervals(double[] x, int index, int length,
@@ -108,9 +167,9 @@ namespace PS.QRA
             }
         }
 
-        private static int[] FindPeaks(double[] values, int index, int length, int peaksCount, out double[] peakValues)
+        private static int[] FindPeaks(double[] values, int index, int length, int peaksCount)
         {
-            peakValues = new double[peaksCount];
+            double[] peakValues = new double[peaksCount];
             int[] peakIndices = new int[peaksCount];
 
             for (int i = 0; i < peaksCount; i++)
