@@ -9,5 +9,10 @@ namespace PS.QRA.AudioMessage
     public struct Tone
     {
         public double Frequency { get; set; }
+
+        public override string ToString()
+        {
+            return string.Format("{0:0.00}", Frequency);
+        }
     }
 }

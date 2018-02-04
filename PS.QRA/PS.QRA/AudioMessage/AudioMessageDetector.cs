@@ -16,12 +16,14 @@ namespace PS.QRA.AudioMessage
         private int ToneStep;
         private int ToneVariationTolerance;
         private int ToneMinimumRepetition;
-        private int NumberOfSamplesFaultTolerance;
+        private int NumberOfSamplesFaultToleranceForTone;
+        private int NumberOfSamplesFaultToleranceForMessage;
 
         private List<ToneOccurrenceMatrixItem> PreludeOccurrenceMatrix;
         private List<ToneOccurrenceMatrixItem> FinaleOccurrenceMatrix;
         private List<ToneOccurrenceMatrixItem> TonesBeingListened;
         private AudioMessage CurrentAudioMessage;
+        private int CurrentNumberOfFaults { get; set; }
 
         public AudioMessageDetectionState State { get; set; }
 
@@ -31,14 +33,16 @@ namespace PS.QRA.AudioMessage
             int toneStep, 
             int toneVariationTolerance, 
             int toneMinimumRepetition,
-            int numberOfSamplesFaultTolerance)
+            int numberOfSamplesFaultToleranceForTone,
+            int numberOfSamplesFaultToleranceForMessage)
         {
             PreludeConfiguration = preludeConfig;
             FinaleConfiguration = finaleConfig;
             ToneStep = toneStep;
             ToneVariationTolerance = toneVariationTolerance;
             ToneMinimumRepetition = toneMinimumRepetition;
-            NumberOfSamplesFaultTolerance = numberOfSamplesFaultTolerance;
+            NumberOfSamplesFaultToleranceForTone = numberOfSamplesFaultToleranceForTone;
+            NumberOfSamplesFaultToleranceForMessage = numberOfSamplesFaultToleranceForMessage;
             PreludeOccurrenceMatrix = GetToneOccurrenceMatrix(preludeConfig);
             FinaleOccurrenceMatrix = GetToneOccurrenceMatrix(finaleConfig);
             TonesBeingListened = new List<ToneOccurrenceMatrixItem>();
@@ -80,16 +84,9 @@ namespace PS.QRA.AudioMessage
                 tones.Exists(t => t.Frequency == FinaleConfiguration.Frequencies.First()))
                 return;
 
-            // if it exceeds the fault tolerance, we ignore the tone
-            for (int index = TonesBeingListened.Count; index >= 0; index--)
-            {
-                if (!tones.Exists(t => t.Frequency == TonesBeingListened[index].Frequency))
-                {
-                    TonesBeingListened[index].Faults++;
-                    if (TonesBeingListened[index].Faults >= NumberOfSamplesFaultTolerance)
-                        TonesBeingListened.RemoveAt(index);
-                }
-            }
+            // if it exceeds the fault tolerance for tone, we ignore the tone
+            if (TonesBeingListened.Count > 0)
+                IgnoreTonesBeingListenedThatExceedsFaultToleranceForTone(tones);
 
             foreach (var tone in tones)
             {
@@ -105,6 +102,35 @@ namespace PS.QRA.AudioMessage
                 if (toneOccurrence.Occurrences == ToneMinimumRepetition)
                 {
                     CurrentAudioMessage.Frequencies.Add(toneOccurrence.Frequency);
+                }
+            }
+
+            // if it exceeds the fault tolerance for message, reset detector
+            if (TonesBeingListened.Count == 0)
+            {
+                CurrentNumberOfFaults++;
+                if (CurrentNumberOfFaults >= NumberOfSamplesFaultToleranceForMessage)
+                    ResetAudioMessageDetector();
+            }
+        }
+
+        private void ResetAudioMessageDetector()
+        {
+            ResetOcurrenceMatrix(PreludeOccurrenceMatrix);
+            ResetOcurrenceMatrix(FinaleOccurrenceMatrix);
+            CurrentAudioMessage = new AudioMessage();
+            State = AudioMessageDetectionState.SearchingForPrelude;
+        }
+
+        private void IgnoreTonesBeingListenedThatExceedsFaultToleranceForTone(List<Tone> tones)
+        {
+            for (int index = TonesBeingListened.Count - 1; index >= 0; index--)
+            {
+                if (!tones.Exists(t => t.Frequency == TonesBeingListened[index].Frequency))
+                {
+                    TonesBeingListened[index].Faults++;
+                    if (TonesBeingListened[index].Faults >= NumberOfSamplesFaultToleranceForTone)
+                        TonesBeingListened.RemoveAt(index);
                 }
             }
         }
@@ -152,7 +178,7 @@ namespace PS.QRA.AudioMessage
                     break;
 
                 toneOccurrenceMatrix[index].Faults++;
-                if (toneOccurrenceMatrix[index].Faults >= NumberOfSamplesFaultTolerance)
+                if (toneOccurrenceMatrix[index].Faults >= NumberOfSamplesFaultToleranceForTone)
                     ResetOcurrenceMatrix(toneOccurrenceMatrix);
                 break;
             }
@@ -197,11 +223,13 @@ namespace PS.QRA.AudioMessage
                 int mod = frequency % ToneStep;
                 if (mod + ToneVariationTolerance >= ToneStep)
                 {
-                    tones.Add(new Tone() { Frequency = frequency + ToneStep - mod });
+                    if (!tones.Exists(t => t.Frequency == frequency + ToneStep - mod))
+                        tones.Add(new Tone() { Frequency = frequency + ToneStep - mod });
                 }
                 else if (mod < ToneVariationTolerance)
                 {
-                    tones.Add(new Tone() { Frequency = frequency - mod });
+                    if (!tones.Exists(t => t.Frequency == frequency - mod))
+                        tones.Add(new Tone() { Frequency = frequency - mod });
                 }
             }
 
