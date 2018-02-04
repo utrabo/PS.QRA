@@ -38,6 +38,12 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="AudioMessage\AudioMessage.cs" />
+    <Compile Include="AudioMessage\AudioMessageDetectionState.cs" />
+    <Compile Include="AudioMessage\AudioMessageEventArgs.cs" />
+    <Compile Include="AudioMessage\PreludeConfiguration.cs" />
+    <Compile Include="AudioMessage\PreludeOccurrenceMatrixItem.cs" />
+    <Compile Include="AudioMessage\Tone.cs" />
     <Compile Include="ComplexNumber.cs" />
     <Compile Include="FftAlgorithm.cs" />
     <Compile Include="FrequencyUtils.cs" />
@@ -47,7 +53,7 @@
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SignalDetector.cs" />
+    <Compile Include="AudioMessage\AudioMessageDetector.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="MainPage.xaml">

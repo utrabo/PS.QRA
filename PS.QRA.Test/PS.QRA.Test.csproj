@@ -48,11 +48,18 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="SignalDetectorTest.cs" />
+    <Compile Include="AudioMessageDetectorTest.cs" />
+    <Compile Include="AudioMessageTestSubscriber.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PS.QRA\PS.QRA\PS.QRA.csproj">
+      <Project>{eef876b7-df8d-40c9-b7b4-c0d2250a0755}</Project>
+      <Name>PS.QRA</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
