@@ -10,6 +10,5 @@ namespace PS.QRA.AudioMessage
     {
         public AudioPart Part { get; set; }
         public double[] Frequencies { get; set; }
-        public int FaultTolerance { get; set; }
     }
 }

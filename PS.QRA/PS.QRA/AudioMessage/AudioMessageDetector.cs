@@ -16,6 +16,7 @@ namespace PS.QRA.AudioMessage
         private int ToneStep;
         private int ToneVariationTolerance;
         private int ToneMinimumRepetition;
+        private int NumberOfSamplesFaultTolerance;
 
         private List<ToneOccurrenceMatrixItem> PreludeOccurrenceMatrix;
         private List<ToneOccurrenceMatrixItem> FinaleOccurrenceMatrix;
@@ -29,13 +30,15 @@ namespace PS.QRA.AudioMessage
             AudioPartConfiguration finaleConfig, 
             int toneStep, 
             int toneVariationTolerance, 
-            int toneMinimumRepetition)
+            int toneMinimumRepetition,
+            int numberOfSamplesFaultTolerance)
         {
             PreludeConfiguration = preludeConfig;
             FinaleConfiguration = finaleConfig;
             ToneStep = toneStep;
             ToneVariationTolerance = toneVariationTolerance;
             ToneMinimumRepetition = toneMinimumRepetition;
+            NumberOfSamplesFaultTolerance = numberOfSamplesFaultTolerance;
             PreludeOccurrenceMatrix = GetToneOccurrenceMatrix(preludeConfig);
             FinaleOccurrenceMatrix = GetToneOccurrenceMatrix(finaleConfig);
             TonesBeingListened = new List<ToneOccurrenceMatrixItem>();
@@ -52,12 +55,12 @@ namespace PS.QRA.AudioMessage
             switch(State)
             {
                 case AudioMessageDetectionState.SearchingForPrelude:
-                    SearchForAudioPart(tones, PreludeConfiguration, PreludeOccurrenceMatrix, AudioMessageDetectionState.ListeningMessage);
+                    SearchForAudioPart(tones, AudioPart.Prelude, PreludeOccurrenceMatrix, AudioMessageDetectionState.ListeningMessage);
                     break;
                 case AudioMessageDetectionState.ListeningMessage:
                     ListenMessage(tones);
 
-                    SearchForAudioPart(tones, FinaleConfiguration, FinaleOccurrenceMatrix, AudioMessageDetectionState.SearchingForPrelude);
+                    SearchForAudioPart(tones, AudioPart.Finale, FinaleOccurrenceMatrix, AudioMessageDetectionState.SearchingForPrelude);
                     break;
             }
         }
@@ -76,6 +79,17 @@ namespace PS.QRA.AudioMessage
             if (FinaleOccurrenceMatrix.Exists(t => t.Occurrences > 0) ||
                 tones.Exists(t => t.Frequency == FinaleConfiguration.Frequencies.First()))
                 return;
+
+            // if it exceeds the fault tolerance, we ignore the tone
+            for (int index = TonesBeingListened.Count; index >= 0; index--)
+            {
+                if (!tones.Exists(t => t.Frequency == TonesBeingListened[index].Frequency))
+                {
+                    TonesBeingListened[index].Faults++;
+                    if (TonesBeingListened[index].Faults >= NumberOfSamplesFaultTolerance)
+                        TonesBeingListened.RemoveAt(index);
+                }
+            }
 
             foreach (var tone in tones)
             {
@@ -97,7 +111,7 @@ namespace PS.QRA.AudioMessage
 
         private void SearchForAudioPart(
             List<Tone> tones, 
-            AudioPartConfiguration audioPartConfiguration,
+            AudioPart audioPart,
             List<ToneOccurrenceMatrixItem> toneOccurrenceMatrix,
             AudioMessageDetectionState stateToChangeToWhenPartIsDetected)
         {
@@ -110,20 +124,21 @@ namespace PS.QRA.AudioMessage
                 if (tones.Exists(t => t.Frequency == toneOccurrenceMatrix[index].Frequency))
                 {
                     toneOccurrenceMatrix[index].Occurrences++;
+                    toneOccurrenceMatrix[index].Faults = 0;
 
                     if (index == toneOccurrenceMatrix.Count - 1 &&
                         toneOccurrenceMatrix[index].Occurrences == ToneMinimumRepetition)
                     {
                         State = stateToChangeToWhenPartIsDetected;
 
-                        if (audioPartConfiguration.Part == AudioPart.Finale)
+                        if (audioPart == AudioPart.Finale)
                             LaunchAudioMessageDetectedEvent();
                     }
                     break;
                 }
 
                 // if we are looking for the first tone of the prelude and didn't find it, we gotta keep looking
-                if (audioPartConfiguration.Part == AudioPart.Prelude &&
+                if (audioPart == AudioPart.Prelude &&
                     index == 0 && toneOccurrenceMatrix[index].Occurrences == 0)
                     break;
 
@@ -132,12 +147,12 @@ namespace PS.QRA.AudioMessage
                     break;
 
                 // if no finale tone was listened, we are still listening to the message
-                if (audioPartConfiguration.Part == AudioPart.Finale &&
+                if (audioPart == AudioPart.Finale &&
                     index == 0 && toneOccurrenceMatrix.First().Occurrences == 0)
                     break;
 
                 toneOccurrenceMatrix[index].Faults++;
-                if (toneOccurrenceMatrix[index].Faults >= audioPartConfiguration.FaultTolerance)
+                if (toneOccurrenceMatrix[index].Faults >= NumberOfSamplesFaultTolerance)
                     ResetOcurrenceMatrix(toneOccurrenceMatrix);
                 break;
             }
