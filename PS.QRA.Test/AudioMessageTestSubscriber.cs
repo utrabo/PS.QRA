@@ -12,6 +12,7 @@ namespace PS.QRA.Test
         public static List<AudioMessage.AudioMessage> AudioMessages { get; set; }
         public static void Subscribe(AudioMessageDetector audioMessageDetector)
         {
+            AudioMessages = new List<AudioMessage.AudioMessage>();
             audioMessageDetector.AudioMessageDetected += AudioMessageDetected;
         }
 

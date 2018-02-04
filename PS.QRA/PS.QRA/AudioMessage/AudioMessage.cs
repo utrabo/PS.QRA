@@ -9,5 +9,10 @@ namespace PS.QRA.AudioMessage
     public class AudioMessage
     {
         public List<double> Frequencies { get; set; }
+
+        public AudioMessage()
+        {
+            Frequencies = new List<double>();
+        }
     }
 }

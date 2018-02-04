@@ -41,8 +41,9 @@
     <Compile Include="AudioMessage\AudioMessage.cs" />
     <Compile Include="AudioMessage\AudioMessageDetectionState.cs" />
     <Compile Include="AudioMessage\AudioMessageEventArgs.cs" />
-    <Compile Include="AudioMessage\PreludeConfiguration.cs" />
-    <Compile Include="AudioMessage\PreludeOccurrenceMatrixItem.cs" />
+    <Compile Include="AudioMessage\AudioPart.cs" />
+    <Compile Include="AudioMessage\AudioPartConfiguration.cs" />
+    <Compile Include="AudioMessage\ToneOccurrenceMatrixItem.cs" />
     <Compile Include="AudioMessage\Tone.cs" />
     <Compile Include="ComplexNumber.cs" />
     <Compile Include="FftAlgorithm.cs" />

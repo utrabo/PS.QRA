@@ -15,7 +15,10 @@ namespace PS.QRA.Test
         [TestMethod]
         public void given_scenario_1_above_should_return_tone_1700()
         {
-            AudioMessageDetector audioMessageDetector = new AudioMessageDetector(new PreludeConfiguration() { Frequencies = new double[] { 0 } }, 100, 10, 3);
+            AudioMessageDetector audioMessageDetector = new AudioMessageDetector(
+                new AudioPartConfiguration() { Frequencies = new double[] { 0 } },
+                new AudioPartConfiguration() { Frequencies = new double[] { 0 } },
+                100, 10, 3);
             List<Tone> tones = audioMessageDetector.DetectTonesInSample(new double[] { 1696.15, 1764, 1764, 1764, 1764 });
 
             Assert.IsNotNull(tones);
@@ -30,7 +33,10 @@ namespace PS.QRA.Test
         [TestMethod]
         public void given_scenario_2_above_should_return_tone_1800()
         {
-            AudioMessageDetector audioMessageDetector = new AudioMessageDetector(new PreludeConfiguration() { Frequencies = new double[] { 0 } }, 100, 10, 3);
+            AudioMessageDetector audioMessageDetector = new AudioMessageDetector(
+                new AudioPartConfiguration() { Frequencies = new double[] { 0 } },
+                new AudioPartConfiguration() { Frequencies = new double[] { 0 } },
+                100, 10, 3);
             List<Tone> tones = audioMessageDetector.DetectTonesInSample(new double[] { 1796.15, 1764, 1764, 1764, 1764 });
 
             Assert.IsNotNull(tones);
@@ -45,7 +51,10 @@ namespace PS.QRA.Test
         [TestMethod]
         public void given_scenario_3_above_should_return_tone_1700()
         {
-            AudioMessageDetector audioMessageDetector = new AudioMessageDetector(new PreludeConfiguration() { Frequencies = new double[] { 0 } }, 100, 10, 3);
+            AudioMessageDetector audioMessageDetector = new AudioMessageDetector(
+                new AudioPartConfiguration() { Frequencies = new double[] { 0 } },
+                new AudioPartConfiguration() { Frequencies = new double[] { 0 } },
+                100, 10, 3);
             List<Tone> tones = audioMessageDetector.DetectTonesInSample(new double[] { 1709, 1764, 1764, 1764, 1764 });
 
             Assert.IsNotNull(tones);
@@ -60,7 +69,10 @@ namespace PS.QRA.Test
         [TestMethod]
         public void given_scenario_4_above_should_return_tone_1700_and_1800()
         {
-            AudioMessageDetector audioMessageDetector = new AudioMessageDetector(new PreludeConfiguration() { Frequencies = new double[] { 0 } }, 100, 10, 3);
+            AudioMessageDetector audioMessageDetector = new AudioMessageDetector(
+                new AudioPartConfiguration() { Frequencies = new double[] { 0 } },
+                new AudioPartConfiguration() { Frequencies = new double[] { 0 } },
+                100, 10, 3);
             List<Tone> tones = audioMessageDetector.DetectTonesInSample(new double[] { 1709, 1792, 1764, 1764, 1764 });
 
             Assert.IsNotNull(tones);
@@ -85,7 +97,10 @@ namespace PS.QRA.Test
             samples.Add(new double[] { 1709, 1750, 1764, 1764, 1764 });
             samples.Add(new double[] { 1709, 1750, 1764, 1764, 1764 });
 
-            AudioMessageDetector audioMessageDetector = new AudioMessageDetector(new PreludeConfiguration() { Frequencies = new double[] { 1700 } }, 100, 10, 3);
+            AudioMessageDetector audioMessageDetector = new AudioMessageDetector(
+                new AudioPartConfiguration() { Frequencies = new double[] { 1700 } },
+                new AudioPartConfiguration() { Frequencies = new double[] { 0 } },
+                100, 10, 3);
             foreach (var sample in samples)
             {
                 audioMessageDetector.AnalyzeSample(sample);
@@ -124,7 +139,10 @@ namespace PS.QRA.Test
             samples.Add(new double[] { 1891, 1750, 1764, 1764, 1764 });
             samples.Add(new double[] { 1891, 1750, 1764, 1764, 1764 });
 
-            AudioMessageDetector audioMessageDetector = new AudioMessageDetector(new PreludeConfiguration() { Frequencies = new double[] { 1700, 1800, 1900 } }, 100, 10, 3);
+            AudioMessageDetector audioMessageDetector = new AudioMessageDetector(
+                new AudioPartConfiguration() { Frequencies = new double[] { 1700, 1800, 1900 } },
+                new AudioPartConfiguration() { Frequencies = new double[] { 0 } },
+                100, 10, 3);
             foreach(var sample in samples)
             {
                 audioMessageDetector.AnalyzeSample(sample);
@@ -156,7 +174,10 @@ namespace PS.QRA.Test
             samples.Add(new double[] { 1791, 1750, 1764, 1764, 1764 });
             samples.Add(new double[] { 1791, 1750, 1764, 1764, 1764 });
 
-            AudioMessageDetector audioMessageDetector = new AudioMessageDetector(new PreludeConfiguration() { Frequencies = new double[] { 1700, 1800, 1900 } }, 100, 10, 3);
+            AudioMessageDetector audioMessageDetector = new AudioMessageDetector(
+                new AudioPartConfiguration() { Frequencies = new double[] { 1700, 1800, 1900 } },
+                new AudioPartConfiguration() { Frequencies = new double[] { 0 } },
+                100, 10, 3);
             foreach (var sample in samples)
             {
                 audioMessageDetector.AnalyzeSample(sample);
@@ -207,7 +228,10 @@ namespace PS.QRA.Test
             samples.Add(new double[] { 1891, 1750, 1764, 1764, 1764 });
             samples.Add(new double[] { 1891, 1750, 1764, 1764, 1764 });
 
-            AudioMessageDetector audioMessageDetector = new AudioMessageDetector(new PreludeConfiguration() { Frequencies = new double[] { 1700, 1800, 1900 } }, 100, 10, 3);
+            AudioMessageDetector audioMessageDetector = new AudioMessageDetector(
+                new AudioPartConfiguration() { Frequencies = new double[] { 1700, 1800, 1900 } },
+                new AudioPartConfiguration() { Frequencies = new double[] { 0 } },
+                100, 10, 3);
             foreach (var sample in samples)
             {
                 audioMessageDetector.AnalyzeSample(sample);
@@ -259,13 +283,133 @@ namespace PS.QRA.Test
             samples.Add(new double[] { 1891, 1750, 1764, 1764, 1764 });
             samples.Add(new double[] { 1891, 1750, 1764, 1764, 1764 });
 
-            AudioMessageDetector audioMessageDetector = new AudioMessageDetector(new PreludeConfiguration() { Frequencies = new double[] { 1700, 1800, 1900 }, FaultTolerance = 2 }, 100, 10, 3);
+            AudioMessageDetector audioMessageDetector = new AudioMessageDetector(
+                new AudioPartConfiguration() { Frequencies = new double[] { 1700, 1800, 1900 }, FaultTolerance = 2 },
+                new AudioPartConfiguration() { Frequencies = new double[] { 0 } },
+                100, 10, 3);
             foreach (var sample in samples)
             {
                 audioMessageDetector.AnalyzeSample(sample);
             }
 
             Assert.AreEqual(AudioMessageDetectionState.SearchingForPrelude, audioMessageDetector.State);
+        }
+
+        // scenario 10: 
+        // sample => 1709, 1750, 1764, 1764, 1764
+        //           1709, 1750, 1764, 1764, 1764
+        //           1709, 1750, 1764, 1764, 1764
+        //           1791, 1750, 1764, 1764, 1764
+        //           1791, 1750, 1764, 1764, 1764
+        //           1791, 1750, 1764, 1764, 1764
+        //           1891, 1750, 1764, 1764, 1764
+        //           1891, 1750, 1764, 1764, 1764
+        //           1891, 1750, 1764, 1764, 1764
+        //           1600, 1750, 1764, 1764, 1764
+        //           1600, 1750, 1764, 1764, 1764
+        //           1600, 1750, 1764, 1764, 1764
+        // tone step 100
+        // tone variation tolerance of 10
+        // tone minimum repetition of 3
+        // prelude configuration 1700, 1800, 1900
+        // finale configuration 1600
+        [TestMethod]
+        public void given_scenario_10_above_should_change_status_to_listening_to_message_and_back_to_search_for_prelude()
+        {
+            List<double[]> samples = new List<double[]>();
+            samples.Add(new double[] { 1709, 1750, 1764, 1764, 1764 });
+            samples.Add(new double[] { 1709, 1750, 1764, 1764, 1764 });
+            samples.Add(new double[] { 1709, 1750, 1764, 1764, 1764 });
+
+            samples.Add(new double[] { 1791, 1750, 1764, 1764, 1764 });
+            samples.Add(new double[] { 1791, 1750, 1764, 1764, 1764 });
+            samples.Add(new double[] { 1791, 1750, 1764, 1764, 1764 });
+
+            samples.Add(new double[] { 1891, 1750, 1764, 1764, 1764 });
+            samples.Add(new double[] { 1891, 1750, 1764, 1764, 1764 });
+            samples.Add(new double[] { 1891, 1750, 1764, 1764, 1764 });
+
+            samples.Add(new double[] { 1600, 1750, 1764, 1764, 1764 });
+            samples.Add(new double[] { 1600, 1750, 1764, 1764, 1764 });
+            samples.Add(new double[] { 1600, 1750, 1764, 1764, 1764 });
+
+            bool stateWasListeningMessageAtSomePoint = false;
+            AudioMessageDetector audioMessageDetector = new AudioMessageDetector(
+                new AudioPartConfiguration() { Part = AudioPart.Prelude, Frequencies = new double[] { 1700, 1800, 1900 } },
+                new AudioPartConfiguration() { Part = AudioPart.Finale, Frequencies = new double[] { 1600 } },
+                100, 10, 3);
+            foreach (var sample in samples)
+            {
+                audioMessageDetector.AnalyzeSample(sample);
+
+                if (!stateWasListeningMessageAtSomePoint)
+                    stateWasListeningMessageAtSomePoint = audioMessageDetector.State == AudioMessageDetectionState.ListeningMessage;
+            }
+
+            Assert.IsTrue(stateWasListeningMessageAtSomePoint);
+            Assert.AreEqual(AudioMessageDetectionState.SearchingForPrelude, audioMessageDetector.State);
+        }
+
+        // scenario 11: 
+        // sample => 1709, 1750, 1764, 1764, 1764
+        //           1709, 1750, 1764, 1764, 1764
+        //           1709, 1750, 1764, 1764, 1764
+        //           1791, 1750, 1764, 1764, 1764
+        //           1791, 1750, 1764, 1764, 1764
+        //           1791, 1750, 1764, 1764, 1764
+        //           1891, 1750, 1764, 1764, 1764
+        //           1891, 1750, 1764, 1764, 1764
+        //           1891, 1750, 1764, 1764, 1764
+        //           1500, 1750, 1764, 1764, 1764
+        //           1500, 1750, 1764, 1764, 1764
+        //           1500, 1750, 1764, 1764, 1764
+        //           1600, 1750, 1764, 1764, 1764
+        //           1600, 1750, 1764, 1764, 1764
+        //           1600, 1750, 1764, 1764, 1764
+        // tone step 100
+        // tone variation tolerance of 10
+        // tone minimum repetition of 3
+        // prelude configuration 1700, 1800, 1900
+        // finale configuration 1600
+        [TestMethod]
+        public void given_scenario_11_above_should_launch_message_of_1500()
+        {
+            List<double[]> samples = new List<double[]>();
+            samples.Add(new double[] { 1709, 1750, 1764, 1764, 1764 });
+            samples.Add(new double[] { 1709, 1750, 1764, 1764, 1764 });
+            samples.Add(new double[] { 1709, 1750, 1764, 1764, 1764 });
+
+            samples.Add(new double[] { 1791, 1750, 1764, 1764, 1764 });
+            samples.Add(new double[] { 1791, 1750, 1764, 1764, 1764 });
+            samples.Add(new double[] { 1791, 1750, 1764, 1764, 1764 });
+
+            samples.Add(new double[] { 1891, 1750, 1764, 1764, 1764 });
+            samples.Add(new double[] { 1891, 1750, 1764, 1764, 1764 });
+            samples.Add(new double[] { 1891, 1750, 1764, 1764, 1764 });
+
+            samples.Add(new double[] { 1500, 1750, 1764, 1764, 1764 });
+            samples.Add(new double[] { 1500, 1750, 1764, 1764, 1764 });
+            samples.Add(new double[] { 1500, 1750, 1764, 1764, 1764 });
+
+            samples.Add(new double[] { 1600, 1750, 1764, 1764, 1764 });
+            samples.Add(new double[] { 1600, 1750, 1764, 1764, 1764 });
+            samples.Add(new double[] { 1600, 1750, 1764, 1764, 1764 });
+
+            AudioMessageDetector audioMessageDetector = new AudioMessageDetector(
+                new AudioPartConfiguration() { Part = AudioPart.Prelude, Frequencies = new double[] { 1700, 1800, 1900 } },
+                new AudioPartConfiguration() { Part = AudioPart.Finale, Frequencies = new double[] { 1600 } },
+                100, 10, 3);
+
+            AudioMessageTestSubscriber.Subscribe(audioMessageDetector);
+
+            foreach (var sample in samples)
+            {
+                audioMessageDetector.AnalyzeSample(sample);
+            }
+
+            Assert.IsNotNull(AudioMessageTestSubscriber.AudioMessages);
+            Assert.IsTrue(AudioMessageTestSubscriber.AudioMessages.Count > 0);
+            Assert.AreEqual(1500, AudioMessageTestSubscriber.AudioMessages[0].Frequencies[0]);
         }
 
         //// given scenario 1 and samples 1:
@@ -281,7 +425,7 @@ namespace PS.QRA.Test
         //{
         //    List<double[]> samples = GetTestSamples_1();
 
-        //    PreludeConfiguration preludeConfig = new PreludeConfiguration() { Frequencies = new double[] { 1100, 1200, 1300 } };
+        //    AudioPartConfiguration preludeConfig = new AudioPartConfiguration() { Frequencies = new double[] { 1100, 1200, 1300 } };
         //    AudioMessageDetector audioMessageDetector = new AudioMessageDetector(preludeConfig, 100, 10, 3);
 
         //    AudioMessageTestSubscriber.Subscribe(audioMessageDetector);

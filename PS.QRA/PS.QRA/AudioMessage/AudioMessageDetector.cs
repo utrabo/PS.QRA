@@ -8,26 +8,40 @@ namespace PS.QRA.AudioMessage
 {
     public class AudioMessageDetector
     {
-        private PreludeConfiguration PreludeConfiguration;
+        public delegate void AudioMessageDetectedEventHandler(object sender, AudioMessageEventArgs e);
+        public event AudioMessageDetectedEventHandler AudioMessageDetected;
+
+        private AudioPartConfiguration PreludeConfiguration;
+        private AudioPartConfiguration FinaleConfiguration;
         private int ToneStep;
         private int ToneVariationTolerance;
         private int ToneMinimumRepetition;
-        private List<PreludeOccurrenceMatrixItem> PreludeOccurrenceMatrix;
+
+        private List<ToneOccurrenceMatrixItem> PreludeOccurrenceMatrix;
+        private List<ToneOccurrenceMatrixItem> FinaleOccurrenceMatrix;
+        private List<ToneOccurrenceMatrixItem> TonesBeingListened;
+        private AudioMessage CurrentAudioMessage;
 
         public AudioMessageDetectionState State { get; set; }
 
-        public AudioMessageDetector(PreludeConfiguration preludeConfig, int toneStep, int toneVariationTolerance, int toneMinimumRepetition)
+        public AudioMessageDetector(
+            AudioPartConfiguration preludeConfig, 
+            AudioPartConfiguration finaleConfig, 
+            int toneStep, 
+            int toneVariationTolerance, 
+            int toneMinimumRepetition)
         {
             PreludeConfiguration = preludeConfig;
+            FinaleConfiguration = finaleConfig;
             ToneStep = toneStep;
             ToneVariationTolerance = toneVariationTolerance;
             ToneMinimumRepetition = toneMinimumRepetition;
-            PreludeOccurrenceMatrix = GetPreludeOccurrenceMatrix();
+            PreludeOccurrenceMatrix = GetToneOccurrenceMatrix(preludeConfig);
+            FinaleOccurrenceMatrix = GetToneOccurrenceMatrix(finaleConfig);
+            TonesBeingListened = new List<ToneOccurrenceMatrixItem>();
+            CurrentAudioMessage = new AudioMessage();
             State = AudioMessageDetectionState.SearchingForPrelude;
         }
-
-        public delegate void AudioMessageDetectedEventHandler(object sender, AudioMessageEventArgs e);
-        public event AudioMessageDetectedEventHandler AudioMessageDetected;
 
         public void AnalyzeSample(double[] sampleFrequencies)
         {
@@ -35,60 +49,128 @@ namespace PS.QRA.AudioMessage
                 throw new ArgumentNullException("sampleFrequencies");
 
             List<Tone> tones = DetectTonesInSample(sampleFrequencies);
-            if (State == AudioMessageDetectionState.SearchingForPrelude)
+            switch(State)
             {
-                SearchForPrelude(tones);
-                return;
+                case AudioMessageDetectionState.SearchingForPrelude:
+                    SearchForAudioPart(tones, PreludeConfiguration, PreludeOccurrenceMatrix, AudioMessageDetectionState.ListeningMessage);
+                    break;
+                case AudioMessageDetectionState.ListeningMessage:
+                    ListenMessage(tones);
+
+                    SearchForAudioPart(tones, FinaleConfiguration, FinaleOccurrenceMatrix, AudioMessageDetectionState.SearchingForPrelude);
+                    break;
             }
         }
 
-        private void SearchForPrelude(List<Tone> tones)
+        private void ListenMessage(List<Tone> tones)
         {
-            for (int index = 0; index < PreludeOccurrenceMatrix.Count; index++)
+            // if we are not listening to any tones yet
+            // and the tone is equal to the last tone in prelude
+            // ignore because we are stil receiving notes of the prelude
+            if (TonesBeingListened.Count == 0 &&
+                tones.Exists(t => t.Frequency == PreludeConfiguration.Frequencies.Last()))
+                return;
+
+            // if it is the first note of the finale or
+            // if we already started to listen to the finale, ignore
+            if (FinaleOccurrenceMatrix.Exists(t => t.Occurrences > 0) ||
+                tones.Exists(t => t.Frequency == FinaleConfiguration.Frequencies.First()))
+                return;
+
+            foreach (var tone in tones)
             {
-                if (PreludeOccurrenceMatrix[index].Occurrences >= ToneMinimumRepetition)
+                var toneOccurrence = TonesBeingListened.FirstOrDefault(t => t.Frequency == tone.Frequency);
+                if (toneOccurrence == null)
+                {
+                    toneOccurrence = new ToneOccurrenceMatrixItem();
+                    toneOccurrence.Frequency = tone.Frequency;
+                    TonesBeingListened.Add(toneOccurrence);
+                }
+                toneOccurrence.Occurrences++;
+
+                if (toneOccurrence.Occurrences == ToneMinimumRepetition)
+                {
+                    CurrentAudioMessage.Frequencies.Add(toneOccurrence.Frequency);
+                }
+            }
+        }
+
+        private void SearchForAudioPart(
+            List<Tone> tones, 
+            AudioPartConfiguration audioPartConfiguration,
+            List<ToneOccurrenceMatrixItem> toneOccurrenceMatrix,
+            AudioMessageDetectionState stateToChangeToWhenPartIsDetected)
+        {
+
+            for (int index = 0; index < toneOccurrenceMatrix.Count; index++)
+            {
+                if (toneOccurrenceMatrix[index].Occurrences >= ToneMinimumRepetition)
                     continue;
 
-                if (tones.Exists(t => t.Frequency == PreludeOccurrenceMatrix[index].Frequency))
+                if (tones.Exists(t => t.Frequency == toneOccurrenceMatrix[index].Frequency))
                 {
-                    PreludeOccurrenceMatrix[index].Occurrences++;
+                    toneOccurrenceMatrix[index].Occurrences++;
 
-                    // if it is the last iteration and prelude is completed, change status
-                    if (index == PreludeOccurrenceMatrix.Count - 1 &&
-                        PreludeOccurrenceMatrix[index].Occurrences == ToneMinimumRepetition)
-                        State = AudioMessageDetectionState.ListeningMessage;
+                    if (index == toneOccurrenceMatrix.Count - 1 &&
+                        toneOccurrenceMatrix[index].Occurrences == ToneMinimumRepetition)
+                    {
+                        State = stateToChangeToWhenPartIsDetected;
+
+                        if (audioPartConfiguration.Part == AudioPart.Finale)
+                            LaunchAudioMessageDetectedEvent();
+                    }
                     break;
                 }
 
                 // if we are looking for the first tone of the prelude and didn't find it, we gotta keep looking
-                if (index == 0 && PreludeOccurrenceMatrix[index].Occurrences == 0)
+                if (audioPartConfiguration.Part == AudioPart.Prelude &&
+                    index == 0 && toneOccurrenceMatrix[index].Occurrences == 0)
                     break;
 
-                // we are still receiving notes from the last tone of the prelude
-                if (index > 0 && tones.Exists(t => t.Frequency == PreludeOccurrenceMatrix[index - 1].Frequency))
+                // we are still receiving notes from the last tone of the part
+                if (index > 0 && tones.Exists(t => t.Frequency == toneOccurrenceMatrix[index - 1].Frequency))
                     break;
 
-                PreludeOccurrenceMatrix[index].Faults++;
-                if (PreludeOccurrenceMatrix[index].Faults >= PreludeConfiguration.FaultTolerance)
-                    ResetPreludeOcurrenceMatrix();
+                // if no finale tone was listened, we are still listening to the message
+                if (audioPartConfiguration.Part == AudioPart.Finale &&
+                    index == 0 && toneOccurrenceMatrix.First().Occurrences == 0)
+                    break;
+
+                toneOccurrenceMatrix[index].Faults++;
+                if (toneOccurrenceMatrix[index].Faults >= audioPartConfiguration.FaultTolerance)
+                    ResetOcurrenceMatrix(toneOccurrenceMatrix);
                 break;
             }
         }
 
-        private List<PreludeOccurrenceMatrixItem> GetPreludeOccurrenceMatrix()
+        private void LaunchAudioMessageDetectedEvent()
         {
-            List<PreludeOccurrenceMatrixItem> preludeOccurrenceMatrix = new List<PreludeOccurrenceMatrixItem>();
-            foreach (var preludeFrequency in PreludeConfiguration.Frequencies)
-            {
-                preludeOccurrenceMatrix.Add(new PreludeOccurrenceMatrixItem() { Frequency = preludeFrequency, Occurrences = 0, Faults = 0  });
-            }
+            AudioMessageEventArgs args = new AudioMessageEventArgs();
+            args.AudioMessage = CurrentAudioMessage;
 
-            return preludeOccurrenceMatrix;
+            AudioMessageDetected?.Invoke(null, args);
+
+            CurrentAudioMessage = new AudioMessage();
         }
 
-        private void ResetPreludeOcurrenceMatrix()
+        private List<ToneOccurrenceMatrixItem> GetToneOccurrenceMatrix(AudioPartConfiguration config)
         {
-            PreludeOccurrenceMatrix = GetPreludeOccurrenceMatrix();
+            List<ToneOccurrenceMatrixItem> toneOccurrenceMatrix = new List<ToneOccurrenceMatrixItem>();
+            foreach (var frequency in config.Frequencies)
+            {
+                toneOccurrenceMatrix.Add(new ToneOccurrenceMatrixItem() { Frequency = frequency, Occurrences = 0, Faults = 0  });
+            }
+
+            return toneOccurrenceMatrix;
+        }
+
+        private void ResetOcurrenceMatrix(List<ToneOccurrenceMatrixItem> toneOccurrenceMatrix)
+        {
+            foreach(var item in toneOccurrenceMatrix)
+            {
+                item.Faults = 0;
+                item.Occurrences = 0;
+            }
         }
 
         public List<Tone> DetectTonesInSample(double[] sampleFrequencies)
