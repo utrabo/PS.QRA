@@ -62,6 +62,8 @@ namespace PS.QRA.AudioMessage
                     SearchForAudioPart(tones, AudioPart.Prelude, PreludeOccurrenceMatrix, AudioMessageDetectionState.ListeningMessage);
                     break;
                 case AudioMessageDetectionState.ListeningMessage:
+                    IgnorePreludeTones(tones);
+
                     ListenMessage(tones);
 
                     SearchForAudioPart(tones, AudioPart.Finale, FinaleOccurrenceMatrix, AudioMessageDetectionState.SearchingForPrelude);
@@ -69,15 +71,17 @@ namespace PS.QRA.AudioMessage
             }
         }
 
+        private void IgnorePreludeTones(List<Tone> tones)
+        {
+            for (int i = tones.Count - 1; i >= 0; i--)
+            {
+                if (PreludeConfiguration.Frequencies.Contains(tones[i].Frequency))
+                    tones.Remove(tones[i]);
+            }
+        }
+
         private void ListenMessage(List<Tone> tones)
         {
-            // if we are not listening to any tones yet
-            // and the tone is equal to the last tone in prelude
-            // ignore because we are stil receiving notes of the prelude
-            if (TonesBeingListened.Count == 0 &&
-                tones.Exists(t => t.Frequency == PreludeConfiguration.Frequencies.Last()))
-                return;
-
             // if it is the first note of the finale or
             // if we already started to listen to the finale, ignore
             if (FinaleOccurrenceMatrix.Exists(t => t.Occurrences > 0) ||

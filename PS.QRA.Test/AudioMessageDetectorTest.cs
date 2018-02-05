@@ -563,7 +563,7 @@ namespace PS.QRA.Test
 
             Assert.IsNotNull(AudioMessageTestSubscriber.AudioMessages);
             Assert.AreEqual(1, AudioMessageTestSubscriber.AudioMessages.Count);
-            Assert.AreEqual(1400, AudioMessageTestSubscriber.AudioMessages[0].Frequencies[0]);
+            Assert.AreEqual(1300, AudioMessageTestSubscriber.AudioMessages[0].Frequencies[0]);
         }
 
         /// <summary>
