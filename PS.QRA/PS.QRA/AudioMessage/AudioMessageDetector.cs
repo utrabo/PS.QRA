@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,6 +25,8 @@ namespace PS.QRA.AudioMessage
         private List<ToneOccurrenceMatrixItem> TonesBeingListened;
         private AudioMessage CurrentAudioMessage;
         private int CurrentNumberOfFaults { get; set; }
+
+        private const int FinaleStartOccurrences = 3;
 
         public AudioMessageDetectionState State { get; set; }
 
@@ -56,35 +59,74 @@ namespace PS.QRA.AudioMessage
                 throw new ArgumentNullException("sampleFrequencies");
 
             List<Tone> tones = DetectTonesInSample(sampleFrequencies);
-            switch(State)
+
+            DebugAnalysis(sampleFrequencies, tones);
+
+            switch (State)
             {
                 case AudioMessageDetectionState.SearchingForPrelude:
                     SearchForAudioPart(tones, AudioPart.Prelude, PreludeOccurrenceMatrix, AudioMessageDetectionState.ListeningMessage);
                     break;
                 case AudioMessageDetectionState.ListeningMessage:
-                    IgnorePreludeTones(tones);
+                    bool preludeTonesIgnored = IgnorePreludeTones(tones);
 
-                    ListenMessage(tones);
+                    ListenMessage(tones, preludeTonesIgnored);
 
                     SearchForAudioPart(tones, AudioPart.Finale, FinaleOccurrenceMatrix, AudioMessageDetectionState.SearchingForPrelude);
                     break;
             }
         }
 
-        private void IgnorePreludeTones(List<Tone> tones)
+        private void DebugAnalysis(double[] sampleFrequencies, List<Tone> tones)
         {
+            Debug.WriteLine("------------------------------------");
+            StringBuilder builder = new StringBuilder();
+            foreach (var freq in sampleFrequencies)
+            {
+                builder.AppendFormat("{0:0.00}, ", freq);
+            }
+            Debug.WriteLine("Frequencies Received: " + builder.ToString());
+
+            builder = new StringBuilder();
+            foreach (var tone in tones)
+            {
+                builder.Append(tone + ", ");
+            }
+            Debug.WriteLine("Tones detected: " + builder.ToString());
+
+            builder = new StringBuilder();
+            foreach (var tone in TonesBeingListened)
+            {
+                builder.AppendLine(tone + ", ");
+            }
+            Debug.WriteLine("Tones being listened: " + builder.ToString());
+            builder = new StringBuilder();
+            foreach (var freq in CurrentAudioMessage.Frequencies)
+            {
+                builder.AppendFormat("{0:0.00}, ", freq);
+            }
+            Debug.WriteLine("Current audio message: " + builder.ToString());
+        }
+
+        private bool IgnorePreludeTones(List<Tone> tones)
+        {
+            bool preludeTonesIgnored = false;
             for (int i = tones.Count - 1; i >= 0; i--)
             {
                 if (PreludeConfiguration.Frequencies.Contains(tones[i].Frequency))
+                {
                     tones.Remove(tones[i]);
+                    preludeTonesIgnored = true;
+                }
             }
+            return preludeTonesIgnored;
         }
 
-        private void ListenMessage(List<Tone> tones)
+        private void ListenMessage(List<Tone> tones, bool preludeTonesIgnored)
         {
             // if it is the first note of the finale or
             // if we already started to listen to the finale, ignore
-            if (FinaleOccurrenceMatrix.Exists(t => t.Occurrences > 0) ||
+            if (FinaleOccurrenceMatrix.Exists(t => t.Occurrences > FinaleStartOccurrences) ||
                 tones.Exists(t => t.Frequency == FinaleConfiguration.Frequencies.First()))
                 return;
 
@@ -110,7 +152,7 @@ namespace PS.QRA.AudioMessage
             }
 
             // if it exceeds the fault tolerance for message, reset detector
-            if (TonesBeingListened.Count == 0)
+            if (TonesBeingListened.Count == 0 && !preludeTonesIgnored)
             {
                 CurrentNumberOfFaults++;
                 if (CurrentNumberOfFaults >= NumberOfSamplesFaultToleranceForMessage)
@@ -161,8 +203,17 @@ namespace PS.QRA.AudioMessage
                     {
                         State = stateToChangeToWhenPartIsDetected;
 
-                        if (audioPart == AudioPart.Finale)
-                            LaunchAudioMessageDetectedEvent();
+                        switch(audioPart)
+                        {
+                            case AudioPart.Prelude:
+                                ResetOcurrenceMatrix(PreludeOccurrenceMatrix);
+                                break;
+                            case AudioPart.Finale:
+                                LaunchAudioMessageDetectedEvent();
+                                ResetOcurrenceMatrix(FinaleOccurrenceMatrix);
+                                break;
+                        }
+                            
                     }
                     break;
                 }

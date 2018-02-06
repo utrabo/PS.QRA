@@ -11,5 +11,10 @@ namespace PS.QRA.AudioMessage
         public double Frequency { get; set; }
         public int Occurrences { get; set; }
         public int Faults { get; set; }
+
+        public override string ToString()
+        {
+            return string.Format("{0:0.00}, Occur.:{1}, Faults: {2}", Frequency, Occurrences, Faults);
+        }
     }
 }

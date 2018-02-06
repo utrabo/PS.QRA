@@ -14,5 +14,19 @@ namespace PS.QRA.AudioMessage
         {
             Frequencies = new List<double>();
         }
+
+        public override string ToString()
+        {
+            if (Frequencies == null || !Frequencies.Any())
+                return "Empty message";
+
+            StringBuilder frequencies = new StringBuilder();
+            foreach (var freq in Frequencies)
+            {
+                frequencies.AppendFormat("{0:0.00}, ", freq);
+            }
+
+            return frequencies.ToString();
+        }
     }
 }
